@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <stdlib.h>
+
 static snd_seq_t *seq_handle;
 static int in_port;
 
@@ -13,30 +14,20 @@ static int in_port;
 //
 //////////////////////////////////////////////////////////////////
 
-int pinMapping[] = {0,2,3,12,13,14,21,30,22,23,24,25};
-/*
-15,
-8,
-9,
-7,
-0,
-2,
-3,
-12,
-13,
-14,
-30,
-21,
-22,
-23,
-24,
-25,
-16,
-1,
-4,
-5
-};
-*/
+// start alternate keymapping at 53
+int KeyMapping[] = {1,512,2,513,4,514,8,16,515,32,517,64,128};
+int pinMapping[] = {0,2,3,12,13,14,21,30,22,23,24,25,15,8,9,7,16,1,4,5};
+
+int PositionArray[][3] ={{0,0,0},{1,1,0},{1,1,1},{0,1,0},
+			 {0,0,0},{1,1,0},{1,1,1},{0,1,0},
+			{0,0,0},{1,1,0},{1,1,1},{0,1,0},
+			{0,0,0},{1,1,0},{1,1,1},{0,1,0}};
+
+
+int Status=0;
+int CStat[]={0,0,0,0};
+int CStatBuf[]={0,0,0,0};
+int pinUsed[]={0,0,0,0,0,0,0,0,0,0,0,0};
 
 #define TOTAL_PINS sizeof(pinMapping) / sizeof(int)
 #define THRUPORTCLIENT 14
@@ -84,11 +75,35 @@ void clearPinNotes() {
    }
 }
 
-void myDigitalWrite(int pinIdx, int val) {
-     val  ?  printf("%i (%i) ON\n", pinIdx, pinMapping[pinIdx])  : printf("%i (%i) OFF\n", pinIdx, pinMapping[pinIdx]);
-     digitalWrite( pinMapping[pinIdx], val );
+int alternateKey(int pinIdx){
+	if((pinIdx >= 53) && (pinIdx <= 65))
+		return KeyMapping[pinIdx-53];
+	else return pinIdx < 65 ? pinIdx + 512-53 : pinIdx + 512-60;
 }
 
+void myDigitalWrite(int pinIdx, int val) {
+	printf("Alt-key = %d\n", alternateKey(pinIdx));
+     val  ?  printf("%i (%i) ON\n", pinIdx, pinMapping[pinIdx])  : printf("%i (%i) OFF\n", pinIdx, pinMapping[pinIdx]);
+     digitalWrite( pinMapping[pinIdx], val );
+
+}
+
+void WriteIOBuf(int Idx, int Offset){
+//	printf(" idx = %d, Offset = %d ", Idx, Offset);
+//	printf(" pin = %d, %d, %d ", pinMapping[Offset*3], pinMapping[Offset*3+1],pinMapping[Offset*3+2]);
+//	printf(" pin = %d %d %d ", PositionArray[Offset*4+Idx][0],PositionArray[Offset*4+Idx][1],PositionArray[Offset*4+Idx][2]);
+	digitalWrite( pinMapping[Offset*3], 0 );
+	pinUsed[Offset*3] = PositionArray[Offset*4+Idx][0];
+	digitalWrite( pinMapping[Offset*3], PositionArray[Offset*4+Idx][0] );
+	digitalWrite( pinMapping[Offset*3+1], 0 );
+	pinUsed[Offset*3+1] = PositionArray[Offset*4+Idx][1];
+	digitalWrite( pinMapping[Offset*3+1], PositionArray[Offset*4+Idx][1] );
+	digitalWrite( pinMapping[Offset*3+2], 0 );
+	pinUsed[Offset*3+2] = PositionArray[Offset*4+Idx][2];
+	digitalWrite( pinMapping[Offset*3+2], PositionArray[Offset*4+Idx][2] );
+
+
+}
 
 void clearPinChannels() {
    int i;
@@ -141,14 +156,13 @@ int isSynth(int instrVal) {
   return instrVal >= 88 && instrVal <= 103;
 }
 
-
-
 int choosePinIdx(int note, int channel) {
    //Return the note modulated by the number of melody pins
 //   int val = note  % (TOTAL_PINS * 2);
 //   return val / 2;
-	return note % 12;
+	return note % 19;
 }
+
 
 
 void midi_process(snd_seq_event_t *ev)
@@ -169,47 +183,54 @@ void midi_process(snd_seq_event_t *ev)
         
   
         //choose the output pin based on the pitch of the note
-        int pinIdx = choosePinIdx(ev->data.note.note, ev->data.note.channel);
-
-
-        if(!isPercussionChannel(ev->data.note.channel) ) { 
-           int isOn = 1;
-           //Note velocity == 0 means the same thing as a NOTEOFF type event
-           if( ev->data.note.velocity == 0 || ev->type == SND_SEQ_EVENT_NOTEOFF) {
+        int pinIdx = alternateKey(ev->data.note.note);
+		int RedIdx=(pinIdx-6)%12;
+		//choosePinIdx(ev->data.note.note, ev->data.note.channel);
+		printf("Note=%d", ev->data.note.note);
+		int isOn = 1;
+		if( ev->data.note.velocity == 0 || ev->type == SND_SEQ_EVENT_NOTEOFF) {
               isOn = 0;
            }
+		
 
+		
+		if( isOn ) {
+				if(pinIdx < 256) {
+				CStat[0]+=pinIdx & 0x3;
+				CStat[1]+=(pinIdx & 12) >> 2;
+				CStat[2]+=(pinIdx & 48) >> 4;
+				CStat[3]+=(pinIdx & 196) >> 6;}
+				else{
+					if(!pinUsed[RedIdx])
+					myDigitalWrite(RedIdx, 1);
+					else myDigitalWrite(RedIdx, 0);
+					
+				printf(" On %d",pinIdx < 256 ? pinIdx*1000: pinIdx);
+				}
+}
+		else {
+				if(pinIdx < 256) {
+				CStat[0]-=pinIdx & 0x3;
+				CStat[1]-=(pinIdx & 12) >> 2;
+				CStat[2]-=(pinIdx & 48) >> 4;
+				CStat[3]-=(pinIdx & 196) >> 6;}
+				else{
+					
+					if(!pinUsed[RedIdx])
+					myDigitalWrite(RedIdx, 0);
+					else myDigitalWrite(RedIdx, 1);
+				}
 
-           //If pin is set to be turned on
-           if( isOn ) {
-              //If pin is currently available to play a note, or if currently playing channel can be overriden due to higher priority channel
-              if( pinNotes[pinIdx] == -1 || pinChannels[pinIdx] > ev->data.note.channel )  {
-                      
-                 if( (pinChannels[pinIdx] > ev->data.note.channel ) && pinNotes[pinIdx] != -1)  {
-                    //printf("OVERRIDING CHANNEL %i for %i\n", pinChannels[pinIdx], ev->data.note.channel);
-                 }
-                 //Write to the pin, save the note to pinNotes
-                 printf("Pin %i - %s %i %i \n", pinIdx, isOn ? "on" : "off", ev->data.note.note, ev->data.note.channel);       
-                 myDigitalWrite(pinIdx, 1); 
-				 if (ev->data.note.note == 60) {system("/home/pi/shell/testscript.sh");}  // execute exteral shell script om arecordmidi te starten.
-                 pinNotes[pinIdx] = ev->data.note.note;
-                 pinChannels[pinIdx] =  ev->data.note.channel;
-              }
-           }
-           
-           //Pin is to be turned off
-           else {
-              //If this is the note that turned the pin on..
-              if( pinNotes[pinIdx] == ev->data.note.note && pinChannels[pinIdx] == ev->data.note.channel ) {
-                 //Write to the pin, indicate that pin is available
-                 //printf("Pin %i - %s %i %i \n", pinIdx, isOn ? "on" : "off", ev->data.note.note, ev->data.note.channel);       
-                 myDigitalWrite(pinIdx, 0); 
-                 pinNotes[pinIdx] = -1;
-                 pinChannels[pinIdx] = INT_MAX;
-              }
-           }
-       }
+				printf(" Off %d",pinIdx < 256 ? pinIdx*1000: pinIdx);
+			}
 
+			
+		if(CStat[0]!=CStatBuf[0]) {CStatBuf[0]=CStat[0];  WriteIOBuf(CStat[0], 0);}
+		if(CStat[1]!=CStatBuf[1]) {CStatBuf[1]=CStat[1];  WriteIOBuf(CStat[1], 1);}
+		if(CStat[2]!=CStatBuf[2]) {CStatBuf[2]=CStat[2];  WriteIOBuf(CStat[2], 2);}
+		if(CStat[3]!=CStatBuf[3]) {CStatBuf[3]=CStat[3];  WriteIOBuf(CStat[3], 3);}
+		
+printf("\n");
     }
     
     else {
@@ -223,12 +244,10 @@ void midi_process(snd_seq_event_t *ev)
 
 int main()
 {
-
     //Setup wiringPi
     if( wiringPiSetup() == -1) {
       exit(1);
-    }
-   
+    }   
     //Setup all the pins to use OUTPUT mode
     int i=0;
     for(i=0; i< TOTAL_PINS; i++) {
