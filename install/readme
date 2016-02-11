@@ -5,11 +5,19 @@ WiringPi installeren met getWiringPi.sh
 asoundlib installeren met getAsoundlib.sh
 
 Midi programma opstarten bij boot:
-midiOnStartup.sh
-in init.d staan het benodigde script
+installeren met midiOnStartup.sh
+in init.d staan het benodigde script : midiout
 
 VNC server installeren en starten bij boot:
+instlleren met getTightVNCserver.sh  
+VNCOnStartup.sh   -> installeert startvnc
+eerste keer handmatig opstarten om password te maken.
 
 seq24 sequencer programma installeren met 
 getSeq24.sh
+
+
+wanneer geen DHCP server in netwerk configureer een statisch netwerkadres.
+setStaticAdress.sh
+
 
