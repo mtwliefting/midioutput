@@ -1,0 +1,15 @@
+De scripts voeren de installeren / configureren de diverse onderdelen:
+
+dependencies voor het compileren:
+WiringPi installeren met getWiringPi.sh
+asoundlib installeren met getAsoundlib.sh
+
+Midi programma opstarten bij boot:
+midiOnStartup.sh
+in init.d staan het benodigde script
+
+VNC server installeren en starten bij boot:
+
+seq24 sequencer programma installeren met 
+getSeq24.sh
+

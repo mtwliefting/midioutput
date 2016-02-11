@@ -15,13 +15,13 @@ static int in_port;
 //////////////////////////////////////////////////////////////////
 
 // start alternate keymapping at 53
-int KeyMapping[] = {1,512,2,513,4,514,8,16,515,32,517,64,128};
+int KeyMapping[] = {1,512,2,513,4,514,8,16,515,32,516,64,128};
 int pinMapping[] = {0,2,3,12,13,14,21,30,22,23,24,25,15,8,9,7,16,1,4,5};
 
-int PositionArray[][3] ={{0,0,0},{1,1,0},{1,1,1},{0,1,0},
-			 {0,0,0},{1,1,0},{1,1,1},{0,1,0},
-			{0,0,0},{1,1,0},{1,1,1},{0,1,0},
-			{0,0,0},{1,1,0},{1,1,1},{0,1,0}};
+int PositionArray[][3] ={{0,0,0},{1,1,0},{1,0,1},{0,1,0},
+			 {0,0,0},{1,1,0},{1,0,1},{0,1,0},
+			{0,0,0},{1,1,0},{1,0,1},{0,1,0},
+			{0,0,0},{1,1,0},{1,0,1},{0,1,0}};
 
 
 int Status=0;
@@ -78,7 +78,7 @@ void clearPinNotes() {
 int alternateKey(int pinIdx){
 	if((pinIdx >= 53) && (pinIdx <= 65))
 		return KeyMapping[pinIdx-53];
-	else return pinIdx < 65 ? pinIdx + 512-53 : pinIdx + 512-60;
+	else return pinIdx < 65 ? pinIdx + 512-53 : pinIdx + 512-61;
 }
 
 void myDigitalWrite(int pinIdx, int val) {
@@ -195,6 +195,7 @@ void midi_process(snd_seq_event_t *ev)
 
 		
 		if( isOn ) {
+			if(pinIdx != 523){
 				if(pinIdx < 256) {
 				CStat[0]+=pinIdx & 0x3;
 				CStat[1]+=(pinIdx & 12) >> 2;
@@ -207,7 +208,13 @@ void midi_process(snd_seq_event_t *ev)
 					
 				printf(" On %d",pinIdx < 256 ? pinIdx*1000: pinIdx);
 				}
-}
+				
+			}
+			else {
+				system("/home/pi/midioutput/play.sh");
+				// reageer op key 523
+			}
+			}
 		else {
 				if(pinIdx < 256) {
 				CStat[0]-=pinIdx & 0x3;
@@ -224,12 +231,12 @@ void midi_process(snd_seq_event_t *ev)
 				printf(" Off %d",pinIdx < 256 ? pinIdx*1000: pinIdx);
 			}
 
-			
+		
 		if(CStat[0]!=CStatBuf[0]) {CStatBuf[0]=CStat[0];  WriteIOBuf(CStat[0], 0);}
 		if(CStat[1]!=CStatBuf[1]) {CStatBuf[1]=CStat[1];  WriteIOBuf(CStat[1], 1);}
 		if(CStat[2]!=CStatBuf[2]) {CStatBuf[2]=CStat[2];  WriteIOBuf(CStat[2], 2);}
 		if(CStat[3]!=CStatBuf[3]) {CStatBuf[3]=CStat[3];  WriteIOBuf(CStat[3], 3);}
-		
+
 printf("\n");
     }
     
