@@ -14,11 +14,13 @@
 case "$1" in 
     start)
         echo "Starting Inputs"
-	/home/pi/midioutput/install/readbuttons.sh & 
+	/home/pi/midioutput/install/readbuttons.sh &
+        /home/pi/midioutput/install/inputscripts/RUN.sh &
 	        ;;
     stop)
         echo "Stopping Inputs"
         killall readbuttons.sh
+        killall RUN.sh
         ;;
     *)
         echo "Usage: /etc/init.d/inputs start|stop"

@@ -1,3 +1,4 @@
 #!/bin/bash
 
-gpio write 1 1 
+gpio write 1 1
+
