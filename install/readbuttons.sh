@@ -11,9 +11,9 @@ do
 		REFA=$INPUTA	
 		if [ $INPUTA == 1 ]
 			then
-			echo "schakelaar 1 aan" >> /home/pi/test.txt
+		        /home/pi/midioutput/install/inputscripts/1aan.sh	
 			else 
-			echo "schakelaar 1 uit" >> /home/pi/test.txt
+			/home/pi/midioutput/install/inputscripts/1uit.sh
 
 		fi
 	fi
@@ -22,9 +22,9 @@ do
                 REFB=$INPUTB
                 if [ $INPUTB == 1 ]
                         then
-                        echo "schakelaar 2 aan" >> /home/pi/test.txt 
+                        /home/pi/midioutput/install/inputscripts/2aan.sh 
                         else 
-			echo "schakelaar 2 uit" >> /home/pi/test.txt
+			/home/pi/midioutput/install/inputscripts/2uit.sh
                 fi
 
 
