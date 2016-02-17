@@ -25,7 +25,6 @@ echo "installeer seq24"
 getSeq24.sh
 
 echo "init git met username e.d."
-:wq
 initgit.sh
 
 
