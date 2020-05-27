@@ -9,7 +9,7 @@ static snd_seq_t *seq_handle;
 static int in_port;
 
 ////////////////////////////////////////////////////////////////////////////
-//Example setup: There are 12 melody channels. Each index is mapped to 
+//Example setup: There are 15 melody channels. Each index is mapped to 
 // the corresponding Wiring Pi valued channel in the array below.
 //
 //////////////////////////////////////////////////////////////////
