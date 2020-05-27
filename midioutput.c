@@ -15,9 +15,9 @@ static int in_port;
 //////////////////////////////////////////////////////////////////
 
 // start alternate keymapping at 53
-int KeyMapping[] = {1,512,2,513,4,514,8,16,515,32,516,64,128};
-int pinMapping[] = {25,21,0,23,14,2,24,30,12,22,13,3,   15,8,9,7,16,1,4,5};
-//int pinMapping[] = {0,2,3,12,13,14,21,30,22,23,24,25,15,8,9,7,16,1,4,5};
+int KeyMapping[] = {523,512,2,513,4,514,8,16,515,32,516,64,128};
+int pinMapping[] = {0,21,1,22,2,3,23,4,24,5,25,6,7,11,8};
+//int pinMapping[] = {0,21,1,21,2,3,21,21,4,21,21,21,13,14,22};
 
 int PositionArray[][3] ={{0,0,0},{1,1,0},{1,0,1},{0,1,0},
 			 {0,0,0},{1,1,0},{1,0,1},{0,1,0},
@@ -28,7 +28,7 @@ int PositionArray[][3] ={{0,0,0},{1,1,0},{1,0,1},{0,1,0},
 int Status=0;
 int CStat[]={0,0,0,0};
 int CStatBuf[]={0,0,0,0};
-int pinUsed[]={0,0,0,0,0,0,0,0,0,0,0,0};
+int pinUsed[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; 
 
 #define TOTAL_PINS sizeof(pinMapping) / sizeof(int)
 #define THRUPORTCLIENT 14
@@ -185,7 +185,7 @@ void midi_process(snd_seq_event_t *ev)
   
         //choose the output pin based on the pitch of the note
         int pinIdx = alternateKey(ev->data.note.note);
-		int RedIdx=(pinIdx-6)%12;
+		int RedIdx=(pinIdx)%15;
 		//choosePinIdx(ev->data.note.note, ev->data.note.channel);
 		printf("Note=%d", ev->data.note.note);
 		int isOn = 1;
