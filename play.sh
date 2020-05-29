@@ -1,10 +1,11 @@
 #!/bin/bash
 
 
-if [ "$(pidof aplay)" ]
+if [ "$(pidof omxplayer.bin)" ]
 then
 	killall aplay
-	killall omxplayer
+	echo raspberry | sudo -S pkill -9 omxplayer
+
 else
         amixer cset numid=1 85%
 	nohup aplay "/home/pi/midioutput/Walking the Dog3.wav" </dev/null >/dev/null 2>&1 &   
