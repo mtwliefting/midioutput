@@ -185,7 +185,7 @@ void midi_process(snd_seq_event_t *ev)
   
         //choose the output pin based on the pitch of the note
         int pinIdx = alternateKey(ev->data.note.note);
-		int RedIdx=(pinIdx+5)%18;
+		int RedIdx=(pinIdx+8)%18;
 		//choosePinIdx(ev->data.note.note, ev->data.note.channel);
 		printf("Note=%d", ev->data.note.note);
 		int isOn = 1;
