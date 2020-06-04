@@ -9,14 +9,14 @@ static snd_seq_t *seq_handle;
 static int in_port;
 
 ////////////////////////////////////////////////////////////////////////////
-//Example setup: There are 15 melody channels. Each index is mapped to 
+//Example setup: There are 18 melody channels. Each index is mapped to 
 // the corresponding Wiring Pi valued channel in the array below.
 //
 //////////////////////////////////////////////////////////////////
 
-// start alternate keymapping at 53
-int KeyMapping[] = {523,512,2,513,4,514,8,16,515,32,516,64,128};
-int pinMapping[] = {0,21,1,22,2,3,23,4,24,5,25,6,7,11,8};
+// start alternate keymapping at 101
+int KeyMapping[] = {552,512,2,513,4,514,8,16,515,32,516,64,128};
+int pinMapping[] = {0,21,1,22,2,3,23,4,24,5,25,6,7,11,8,12,9,13};
 //int pinMapping[] = {25,21,0,23,14,2,24,30,12,22,13,3,15,8,9,7,16,1,4,5}; // pinout hond
 
 int PositionArray[][3] ={{0,0,0},{1,1,0},{1,0,1},{0,1,0},
@@ -28,7 +28,7 @@ int PositionArray[][3] ={{0,0,0},{1,1,0},{1,0,1},{0,1,0},
 int Status=0;
 int CStat[]={0,0,0,0};
 int CStatBuf[]={0,0,0,0};
-int pinUsed[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; 
+int pinUsed[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; 
 
 #define TOTAL_PINS sizeof(pinMapping) / sizeof(int)
 #define THRUPORTCLIENT 14
@@ -77,9 +77,9 @@ void clearPinNotes() {
 }
 
 int alternateKey(int pinIdx){
-	if((pinIdx >= 53) && (pinIdx <= 65))
-		return KeyMapping[pinIdx-53];
-	else return pinIdx < 65 ? pinIdx + 512-53 : pinIdx + 512-61;
+	if((pinIdx >= 101) && (pinIdx <= 119))
+		return KeyMapping[pinIdx-101];
+	else return pinIdx < 119 ? pinIdx + 512-100 : pinIdx + 512-109;
 }
 
 void myDigitalWrite(int pinIdx, int val) {
@@ -185,7 +185,7 @@ void midi_process(snd_seq_event_t *ev)
   
         //choose the output pin based on the pitch of the note
         int pinIdx = alternateKey(ev->data.note.note);
-		int RedIdx=(pinIdx)%15;
+		int RedIdx=(pinIdx+5)%18;
 		//choosePinIdx(ev->data.note.note, ev->data.note.channel);
 		printf("Note=%d", ev->data.note.note);
 		int isOn = 1;
@@ -196,7 +196,7 @@ void midi_process(snd_seq_event_t *ev)
 
 		
 		if( isOn ) {
-			if(pinIdx != 523){
+			if(pinIdx != 552){
 				if(pinIdx < 256) {
 				CStat[0]+=pinIdx & 0x3;
 				CStat[1]+=(pinIdx & 12) >> 2;
